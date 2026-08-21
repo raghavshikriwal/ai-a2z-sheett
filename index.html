@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI A2Z Sheet</title>
+<style>
+  :root{
+    --bg:#0d1117;
+    --panel:#131a24;
+    --panel-2:#0f151d;
+    --line:#212b38;
+    --text:#dbe4ee;
+    --muted:#7c8ba1;
+    --accent:#4dd6c2;
+    --accent-dim:#254842;
+    --node:#f2b56b;
+    --easy:#4dd6c2;
+    --med:#f2b56b;
+    --hard:#e8654f;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 1px 1px, #1a2431 1px, transparent 0) 0 0/22px 22px,
+      var(--bg);
+    color:var(--text);
+    min-height:100vh;
+  }
+  header{
+    padding:28px 24px 18px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .title-row{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
+  h1{
+    margin:0;
+    font-size:26px;
+    letter-spacing:0.5px;
+    font-weight:700;
+  }
+  h1 .path{color:var(--accent); font-family: 'Consolas', monospace;}
+  .subtitle{color:var(--muted); font-size:13px; font-family:'Consolas', monospace;}
+  .progress-wrap{
+    display:flex; align-items:center; gap:12px; margin-top:4px;
+  }
+  .progress-bar{
+    flex:1; max-width:420px; height:8px; background:var(--panel-2);
+    border-radius:4px; overflow:hidden; border:1px solid var(--line);
+  }
+  .progress-fill{
+    height:100%; background:linear-gradient(90deg, var(--accent), #7fe8d8);
+    width:0%; transition:width .3s ease;
+  }
+  #progress-label{font-size:12px; color:var(--muted); font-family:'Consolas', monospace;}
+  #search{
+    margin-top:10px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--text);
+    padding:9px 12px;
+    border-radius:8px;
+    width:100%;
+    max-width:340px;
+    font-size:13px;
+  }
+  #search:focus{outline:none; border-color:var(--accent);}
+
+  main{padding:20px 24px 60px; max-width:960px; margin:0 auto;}
+
+  .category{
+    margin-bottom:22px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    background:var(--panel);
+  }
+  .category-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px;
+    cursor:pointer;
+    user-select:none;
+    background:var(--panel-2);
+  }
+  .category-head:hover{background:#141d29;}
+  .cat-name{font-weight:600; font-size:14.5px; display:flex; align-items:center; gap:10px;}
+  .cat-node{
+    width:8px; height:8px; border-radius:50%;
+    background:var(--node);
+  }
+  .cat-progress{font-size:12px; color:var(--muted); font-family:'Consolas', monospace;}
+  .caret{transition:transform .2s ease; color:var(--muted); font-size:11px;}
+  .category.open .caret{transform:rotate(90deg);}
+
+  .topic-list{display:none;}
+  .category.open .topic-list{display:block;}
+
+  .topic-row{
+    display:flex; align-items:center; gap:12px;
+    padding:11px 16px;
+    border-top:1px solid var(--line);
+    font-size:13.5px;
+  }
+  .topic-row:hover{background:#101722;}
+  .topic-row input[type=checkbox]{
+    width:16px; height:16px; accent-color:var(--accent); cursor:pointer; flex-shrink:0;
+  }
+  .topic-name{flex:1; min-width:0;}
+  .topic-name.done{color:var(--muted); text-decoration:line-through;}
+  .diff{
+    font-size:10.5px; font-family:'Consolas', monospace; padding:2px 7px;
+    border-radius:10px; flex-shrink:0; white-space:nowrap;
+  }
+  .diff.Easy{color:var(--easy); background:rgba(77,214,194,0.12);}
+  .diff.Medium{color:var(--med); background:rgba(242,181,107,0.12);}
+  .diff.Hard{color:var(--hard); background:rgba(232,101,79,0.12);}
+  .actions{display:flex; gap:6px; flex-shrink:0;}
+  .actions button{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    font-size:12px; padding:5px 9px; border-radius:6px; cursor:pointer;
+  }
+  .actions button:hover{border-color:var(--accent); color:var(--accent);}
+
+  .modal-backdrop{
+    display:none; position:fixed; inset:0; background:rgba(3,6,10,0.72);
+    align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    max-width:640px; width:100%; max-height:82vh; overflow:auto;
+    padding:20px 22px;
+  }
+  .modal h2{margin:0 0 4px; font-size:17px;}
+  .modal .modal-sub{color:var(--muted); font-size:12px; margin-bottom:14px; font-family:'Consolas', monospace;}
+  .modal pre{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    padding:14px; overflow:auto; font-size:12.5px; line-height:1.5;
+    font-family:'Consolas', monospace; color:#c9d6e3;
+  }
+  .modal-close{
+    float:right; background:none; border:none; color:var(--muted);
+    font-size:20px; cursor:pointer; line-height:1;
+  }
+  .modal-close:hover{color:var(--text);}
+  #vizStage{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+    padding:16px; min-height:120px; font-family:'Consolas', monospace; font-size:13px;
+  }
+  #vizStep{color:var(--accent); margin-bottom:8px; font-size:12px;}
+  #vizNext{
+    margin-top:12px; background:var(--accent-dim); border:1px solid var(--accent);
+    color:var(--accent); padding:7px 14px; border-radius:6px; cursor:pointer; font-size:12.5px;
+  }
+  footer{
+    text-align:center; color:var(--muted); font-size:11.5px; padding:20px;
+    font-family:'Consolas', monospace;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1>AI <span class="path">A2Z</span> Sheet</h1>
+    <span class="subtitle">// search algorithms & classic problems, one topic at a time</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <span id="progress-label">0 / 0 done</span>
+  </div>
+  <input id="search" type="text" placeholder="Search a topic...">
+</header>
+
+<main id="main"></main>
+
+<footer>add new topics in topics.js — commit, push, done.</footer>
+
+<div class="modal-backdrop" id="codeModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('codeModal')">×</button>
+    <h2 id="codeTitle"></h2>
+    <div class="modal-sub">python implementation</div>
+    <pre id="codeBody"></pre>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="vizModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('vizModal')">×</button>
+    <h2 id="vizTitle"></h2>
+    <div class="modal-sub">step-through visual demo</div>
+    <div id="vizStage">
+      <div id="vizStep"></div>
+      <div id="vizContent"></div>
+    </div>
+    <button id="vizNext" onclick="vizNextStep()">Next step →</button>
+  </div>
+</div>
+
+<script src="topics.js"></script>
+<script>
+const state = JSON.parse(localStorage.getItem('ai_a2z_done') || '{}');
+
+function saveState(){ localStorage.setItem('ai_a2z_done', JSON.stringify(state)); }
+
+function groupByCategory(list){
+  const map = {};
+  list.forEach(t => {
+    if(!map[t.category]) map[t.category] = [];
+    map[t.category].push(t);
+  });
+  return map;
+}
+
+function render(filter=''){
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  const grouped = groupByCategory(topics);
+  let totalDone = 0, total = 0;
+
+  Object.keys(grouped).forEach(cat => {
+    const items = grouped[cat].filter(t => t.name.toLowerCase().includes(filter.toLowerCase()));
+    if(items.length === 0) return;
+
+    const catDone = grouped[cat].filter(t => state[t.id]).length;
+    totalDone += catDone;
+    total += grouped[cat].length;
+
+    const catDiv = document.createElement('div');
+    catDiv.className = 'category open';
+
+    const head = document.createElement('div');
+    head.className = 'category-head';
+    head.innerHTML = `
+      <div class="cat-name"><span class="cat-node"></span>${cat}</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="cat-progress">${catDone}/${grouped[cat].length}</span>
+        <span class="caret">▶</span>
+      </div>`;
+    head.onclick = () => catDiv.classList.toggle('open');
+
+    const list = document.createElement('div');
+    list.className = 'topic-list';
+
+    items.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'topic-row';
+      row.innerHTML = `
+        <input type="checkbox" ${state[t.id] ? 'checked' : ''} data-id="${t.id}">
+        <span class="topic-name ${state[t.id] ? 'done' : ''}">${t.name}</span>
+        <span class="diff ${t.difficulty}">${t.difficulty}</span>
+        <div class="actions">
+          <button data-role="theory">Theory</button>
+          <button data-role="code">Code</button>
+          <button data-role="viz">Visualize</button>
+        </div>`;
+
+      row.querySelector('input').onchange = (e) => {
+        state[t.id] = e.target.checked;
+        saveState();
+        render(document.getElementById('search').value);
+      };
+      row.querySelector('[data-role=theory]').onclick = () => window.open(t.theoryLink, '_blank');
+      row.querySelector('[data-role=code]').onclick = () => openCode(t);
+      row.querySelector('[data-role=viz]').onclick = () => openViz(t);
+
+      list.appendChild(row);
+    });
+
+    catDiv.appendChild(head);
+    catDiv.appendChild(list);
+    main.appendChild(catDiv);
+  });
+
+  document.getElementById('progressFill').style.width = total ? (totalDone/total*100)+'%' : '0%';
+  document.getElementById('progress-label').textContent = `${totalDone} / ${total} done`;
+}
+
+function openCode(t){
+  document.getElementById('codeTitle').textContent = t.name;
+  document.getElementById('codeBody').textContent = t.pythonCode.trim();
+  document.getElementById('codeModal').classList.add('show');
+}
+
+let currentViz = null, vizStepIndex = 0;
+function openViz(t){
+  currentViz = t;
+  vizStepIndex = 0;
+  document.getElementById('vizTitle').textContent = t.name;
+  document.getElementById('vizModal').classList.add('show');
+  renderVizStep();
+}
+function renderVizStep(){
+  const steps = currentViz.vizSteps || ['No visual demo added yet for this topic.'];
+  vizStepIndex = Math.min(vizStepIndex, steps.length-1);
+  document.getElementById('vizStep').textContent = `step ${vizStepIndex+1} / ${steps.length}`;
+  document.getElementById('vizContent').textContent = steps[vizStepIndex];
+}
+function vizNextStep(){
+  const steps = currentViz.vizSteps || [];
+  if(vizStepIndex < steps.length-1){ vizStepIndex++; renderVizStep(); }
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-backdrop').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('show'); });
+});
+
+document.getElementById('search').addEventListener('input', e => render(e.target.value));
+
+render();
+</script>
+</body>
+</html>
